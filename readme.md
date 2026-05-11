@@ -20,8 +20,7 @@ Eine Übersicht aller Beispiele mit kurzer Bibliotheksbeschreibung gibt es in [`
 
 ### Quarto (Datenstory-Pattern)
 
-- [`quarto-example.qmd`](./quarto-example.qmd) — Säulendiagramm der Bevölkerung Winterthur nach Altersklasse, mit **Live-Datenanbindung** und Jahres-Slider (Observable Plot, OJS-Blöcke in Quarto). Render mit `quarto render quarto-example.qmd`.
-- [`quarto-example-python.qmd`](./quarto-example-python.qmd) — Gleiches Säulendiagramm im **Python-Workflow**: pandas zieht die CSV beim Build, Plotly rendert den interaktiven Chart. Datenstand zur Build-Zeit eingefroren — typisches Muster für Datenstories und Jahresberichte. Voraussetzung: `pip install pandas plotly jupyter` (idealerweise in einem venv).
+- [`quarto-example.qmd`](./quarto-example.qmd) — Säulendiagramm der Bevölkerung Winterthur nach Altersklasse, mit Live-Datenanbindung und Jahres-Slider (Observable Plot, OJS-Blöcke in Quarto). Render mit `quarto render quarto-example.qmd`.
 
 ## Lokal starten
 

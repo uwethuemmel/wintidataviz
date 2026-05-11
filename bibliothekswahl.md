@@ -57,8 +57,35 @@ ECharts hat nur eine Lücke: WMS-Basemaps. Leaflet schliesst sie.
 | **MapLibre GL JS** | Besser für Vector Tiles und sehr grosse Datenmengen, aber WMS-Unterstützung nur als Workaround (Raster-Source). Nur als dritte Bibliothek, wenn explizit Vector-Tile-Ästhetik gefragt ist. |
 | **OpenLayers** | GIS-nativ (Projektionen, WMTS, WFS, Druckexport), BSD-2, ~11k Sterne. Steilere Lernkurve als Leaflet. Empfehlung nur, falls Winterthurs WMS-Arbeit in Richtung echtes GIS wächst. |
 
+## Ergänzende Tools für andere Output-Formen
+
+Diese Werkzeuge konkurrieren nicht mit ECharts/Leaflet, sondern lösen eine **andere Aufgabe**: nicht «ein Chart ins CMS einbetten», sondern «ein Dokument mit Text und mehreren Charts publizieren». Daher kein Eintrag in der Abdeckungsmatrix oben, sondern eine eigene Empfehlungslinie.
+
+### Quarto (MIT, Posit)
+
+[Quarto](https://quarto.org) ist ein Open-Source-Publishing-System, das Markdown-Inhalte mit Code-Blöcken (R, Python, Julia, Observable JS) zu HTML, PDF, Word oder Reveal.js rendert. Die eigentlichen Diagramme entstehen darin durch eine *andere* Bibliothek — Observable Plot, Plotly, ECharts via Raw-HTML-Block, Leaflet via htmlwidgets. Quarto ersetzt unsere Bibliothekswahl also nicht, es **umschliesst** sie.
+
+**Stark bei:**
+
+| Szenario | Begründung |
+|---|---|
+| Datenstories (Fliesstext + 5–10 Visualisierungen + Quellen + Footnoten) | Markdown-first, exzellente Typografie, Cross-Refs eingebaut |
+| Jahres-/Quartalsberichte, die parallel als Print-PDF und Web-HTML erscheinen sollen | Einziges Tool im Vergleich, das beide Formate aus einer Quelle erzeugt |
+| Dashboards mit fixem Grid-Layout (Sidebars, Cards, Tabs) | Quarto Dashboards (≥1.4) liefern fertiges Layout-System |
+| Reproduzierbarkeit: Datenstand zu einem Stichtag im Dokument einfrieren, archivieren | `quarto render` friert den Stand ein; gut versionierbar mit git |
+
+**Nicht ideal bei:**
+
+- **Einem Live-Chart pro CMS-Seite**: Quarto braucht einen Build-Schritt. Für Live-Daten via OJS-Blöcke schrumpft der Markdown-Vorteil, weil dann doch JS-Code direkt im Dokument lebt. Geplante Re-Renders via CI/CD passen nicht zu Update-Frequenzen «täglich oder häufiger».
+- **Vollständige Typen-Abdeckung mit Quarto-Bordmitteln**: Choropleth + Bevölkerungspyramide + WMS + Heatmap erfordert Mischen mehrerer Bibliotheken *unter* Quarto (Plotly + Leaflet + OJS + Raw-ECharts). Dann sind es drei Bibliotheken plus Quarto statt zwei nackt.
+
+**Empfehlung:** Quarto **danebenstellen**, nicht ersetzen. Für die «Daten und Statistik»-CMS-Seiten bleibt der ECharts+Leaflet-Stack der direkte Weg. Sobald narrative Formate, Print-Begleitausgaben oder mehrteilige Themen-Stories anstehen, wird Quarto sinnvoll — die HTML-Diagramme darin können weiter mit ECharts oder Observable Plot gerendert werden.
+
 ## Fazit
 
 **Stack: ECharts für alles Diagrammhafte plus Choropleth ohne Basemap; Leaflet für alles mit Basemap (insbesondere WMS).** Zwei Scripts, zwei CDN-URLs, zwei API-Oberflächen zu lernen, volle Abdeckung von `visualisierungstypen.md`, beide Open Source, beide 40k+ Sterne Community, beide seit über einem Jahrzehnt gepflegt.
 
-Optionale Erweiterung bei Bedarf: **OpenLayers**, falls die WMS-Arbeit in Richtung vollwertiges GIS wächst (mehrere Projektionen, Druckexport, komplexe Layer-Verwaltung).
+Optionale Erweiterung bei Bedarf:
+
+- **OpenLayers**, falls die WMS-Arbeit in Richtung vollwertiges GIS wächst (mehrere Projektionen, Druckexport, komplexe Layer-Verwaltung).
+- **Quarto** als parallele Publikations-Schiene für Datenstories und Print-/Web-Berichte (siehe Abschnitt oben).

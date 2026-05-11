@@ -23,16 +23,23 @@ import pandas as pd
 URL = "https://daten.statistik.zh.ch/ogd/daten/ressourcen/KTZH_00002605_00005330.csv"
 
 df = pd.read_csv(URL)
+
+# Jüngstes Jahr im Datensatz auswählen.
 latest = int(df["jahr"].max())
+
+# Filter: nur das jüngste Jahr und Gemeinde Winterthur.
+filtered = df[(df["jahr"] == latest) & (df["gemeinde"] == "Winterthur")]
+
+# Aggregation: Anzahl Personen pro Altersklasse (über Geschlecht/Heimat summiert).
 agg = (
-    df.query("jahr == @latest and gemeinde == 'Winterthur'")
-      .groupby("altersklasse", as_index=False)["anzahl"].sum()
-      .sort_values("altersklasse")
+    filtered.groupby("altersklasse", as_index=False)["anzahl"]
+            .sum()
+            .sort_values("altersklasse")
 )
 total = int(agg["anzahl"].sum())
 
 def fmt(n: int) -> str:
-    """Swiss number formatting: 122926 -> '122'926'."""
+    """Schweizer Tausenderzeichen: 122758 -> 122'758."""
     return f"{n:,}".replace(",", "'")
 ```
 
@@ -41,29 +48,38 @@ Datenstand: **31. Dezember `{python} latest`**. Total Bevölkerung Winterthur: *
 ```{python}
 #| label: fig-bevoelkerung
 #| fig-cap: "Bevölkerung Winterthur nach Altersklasse, Stichtag 31. Dezember des letzten verfügbaren Jahres."
-import plotly.express as px
+import plotly.graph_objects as go
 
-fig = px.bar(
-    agg,
-    x="anzahl",
-    y="altersklasse",
-    orientation="h",
-    color_discrete_sequence=["#CB2512"],   # Kategorische Farbe 01 (Rot 500), Leitlinien §2
-    labels={"anzahl": "Personen", "altersklasse": ""},
-    height=480,
+# Explizite Kategorie-Reihenfolge: jüngste Altersklasse unten, älteste oben (Pyramide-Konvention).
+age_categories = agg["altersklasse"].tolist()  # ['00-04', '05-09', ..., '95+']
+
+fig = go.Figure(
+    go.Bar(
+        x=agg["anzahl"],
+        y=agg["altersklasse"],
+        orientation="h",
+        marker_color="#CB2512",   # Kategorische Farbe 01 (Rot 500), Leitlinien §2
+        hovertemplate="<b>Altersklasse %{y}</b><br>%{x:,.0f} Personen<extra></extra>",
+    )
 )
 
 fig.update_layout(
-    yaxis={"autorange": "reversed"},        # Älteste oben (Pyramide-Konvention)
+    height=480,
     plot_bgcolor="white",
     margin=dict(l=70, r=20, t=20, b=40),
-    separators="'.",                         # Schweizer Tausenderzeichen
-    font=dict(color="#44443F"),              # Anthrazit, Corporate-Farbe §1
-)
-fig.update_xaxes(showgrid=True, gridcolor="#DADAD6")
-fig.update_yaxes(showgrid=False)
-fig.update_traces(
-    hovertemplate="<b>Altersklasse %{y}</b><br>%{x:,.0f} Personen<extra></extra>"
+    separators="'.",                # Schweizer Tausenderzeichen
+    font=dict(color="#44443F"),     # Anthrazit, Corporate-Farbe §1
+    xaxis=dict(
+        title="Personen",
+        showgrid=True,
+        gridcolor="#DADAD6",
+    ),
+    yaxis=dict(
+        title="",
+        categoryorder="array",
+        categoryarray=age_categories,  # 00-04 bei y=0 (unten), 95+ bei y=19 (oben)
+        showgrid=False,
+    ),
 )
 fig
 ```

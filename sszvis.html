@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>sszvis minimal example</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sszvis@3/build/sszvis.css" />
+    <style>
+      body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+      #chart { width: 100%; }
+    </style>
+  </head>
+  <body>
+    <h1>Besuche pro Einrichtungstyp, Winterthur</h1>
+    <p>Quelle: <a href="https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/2902@stadt-winterthur">Stadt Winterthur</a></p>
+    <div id="chart"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sszvis@3"></script>
+    <script>
+      const CSV_URL =
+        "https://daten.statistik.zh.ch/ogd/daten/ressourcen/KTZH_00002902_00005968.csv";
+
+      const containerId = "#chart";
+      const xAcc = d => d.category;
+      const yAcc = d => d.yValue;
+
+      let data = [];
+
+      function render() {
+        const bounds = sszvis.bounds(
+          { top: 10, bottom: 60, left: 50, right: 10 },
+          containerId
+        );
+
+        const xScale = d3.scaleBand()
+          .domain(data.map(xAcc))
+          .padding(0.2)
+          .range([0, bounds.innerWidth]);
+
+        const yMax = d3.max(data, yAcc);
+        const heightScale = d3.scaleLinear().domain([0, yMax]).range([0, bounds.innerHeight]);
+        const yPosScale = heightScale.copy().range([bounds.innerHeight, 0]);
+
+        const cScale = sszvis.scaleQual12();
+
+        const chartLayer = sszvis.createSvgLayer(containerId, bounds).datum(data);
+
+        const barGen = sszvis.bar()
+          .x(d => xScale(xAcc(d)))
+          .y(d => yPosScale(yAcc(d)))
+          .width(xScale.bandwidth())
+          .height(d => heightScale(yAcc(d)))
+          .fill(cScale);
+
+        const xAxis = sszvis.axisX.ordinal().scale(xScale).orient("bottom").slant("horizontal");
+        const yAxis = sszvis.axisY().scale(yPosScale).orient("right");
+
+        chartLayer.selectGroup("bars").call(barGen);
+
+        chartLayer.selectGroup("xAxis")
+          .attr("transform", sszvis.translateString(0, bounds.innerHeight))
+          .call(xAxis);
+
+        chartLayer.selectGroup("yAxis").call(yAxis);
+      }
+
+      d3.csv(CSV_URL, d3.autoType).then(rows => {
+        const latest = d3.max(rows, d => d.jahr);
+        const totals = d3.rollup(
+          rows.filter(d => d.jahr === latest),
+          v => d3.sum(v, d => d.besuche),
+          d => d.typ
+        );
+        data = Array.from(totals, ([category, yValue]) => ({ category, yValue }))
+          .sort((a, b) => b.yValue - a.yValue);
+
+        render();
+        sszvis.viewport.on("resize", () => {
+          d3.select(containerId).select("svg").remove();
+          render();
+        });
+      });
+    </script>
+  </body>
+</html>

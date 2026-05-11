@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>Choropleth: Einwohner pro Quartier, Winterthur</title>
+    <style>
+      body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; color: #44443F; }
+      h1 { margin-bottom: 0.25rem; }
+      .meta { color: #61615E; font-size: 0.95rem; margin-top: 0.25rem; }
+      .meta a { color: #61615E; }
+      #chart { width: 100%; height: 600px; margin-top: 1rem; }
+    </style>
+  </head>
+  <body>
+    <h1>Einwohner pro Quartier, Winterthur</h1>
+    <p class="meta">
+      Stichtag: <span id="stichtag">…</span> ·
+      Quelle:
+      <a href="https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/2702@stadt-winterthur">Stadt Winterthur</a>
+    </p>
+    <div id="chart"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <script>
+      const CSV_URL =
+        "https://daten.statistik.zh.ch/ogd/daten/ressourcen/KTZH_00002702_00005583.csv";
+      const GEOJSON_URL = "winterthur_quartiere_simplified.geojson";
+
+      // Red §3.1, 7-stufige sequentielle Skala (Stufen 100–700)
+      const PALETTE = [
+        "#F1A79F", "#EC8B80", "#E66254", "#E2402E",
+        "#CB2512", "#AA1F0F", "#89190C",
+      ];
+
+      const chart = echarts.init(document.getElementById("chart"));
+      chart.showLoading();
+
+      Promise.all([
+        d3.csv(CSV_URL, d3.autoType),
+        d3.json(GEOJSON_URL),
+      ]).then(([rows, geojson]) => {
+        const quartierRows = rows.filter(d => d.geom_code === "quartier");
+        const latest = d3.max(quartierRows, d => d.stichtag);
+        const latestRows = quartierRows.filter(d => +d.stichtag === +latest);
+
+        document.getElementById("stichtag").textContent =
+          latest.toLocaleDateString("de-CH", {
+            day: "2-digit", month: "long", year: "numeric",
+          });
+
+        const values = latestRows.map(d => d.einwohner);
+        const quantiles = d3.scaleQuantile()
+          .domain(values)
+          .range(d3.range(PALETTE.length))
+          .quantiles();
+
+        const fmt = n => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "'");
+
+        // Build piecewise bins with disjoint (gt, lte] intervals.
+        // Reversed so the legend shows highest values on top.
+        const pieces = PALETTE.map((color, i) => {
+          const lo = quantiles[i - 1];
+          const hi = quantiles[i];
+          if (i === 0) return { lte: hi, color, label: `≤ ${fmt(hi)}` };
+          if (i === PALETTE.length - 1) return { gt: lo, color, label: `> ${fmt(lo)}` };
+          return { gt: lo, lte: hi, color, label: `${fmt(lo)} – ${fmt(hi)}` };
+        }).reverse();
+
+        echarts.registerMap("winterthur", geojson);
+        chart.hideLoading();
+
+        chart.setOption({
+          tooltip: {
+            trigger: "item",
+            formatter: p => p.value != null
+              ? `<strong>${p.name}</strong><br>${fmt(p.value)} Einwohner`
+              : `<strong>${p.name}</strong><br>keine Daten`,
+            backgroundColor: "#fff",
+            borderColor: "#DADAD6",
+            textStyle: { color: "#44443F" },
+          },
+          visualMap: {
+            type: "piecewise",
+            pieces,
+            left: "right",
+            top: "middle",
+            orient: "vertical",
+            itemSymbol: "rect",
+            itemWidth: 18,
+            itemHeight: 14,
+            textStyle: { color: "#44443F" },
+            selectedMode: false,
+          },
+          series: [{
+            type: "map",
+            map: "winterthur",
+            nameProperty: "Quartier",
+            roam: false,
+            selectedMode: false,
+            data: latestRows.map(d => ({ name: d.quartier, value: d.einwohner })),
+            // Flat-earth correction so polygons aren't stretched east-west at 47.5° N.
+            // Y is negated because ECharts' screen coordinates grow downward, while
+            // latitude grows northward — without the flip the map renders upside down.
+            projection: {
+              project: ([lon, lat]) => [
+                lon * Math.cos(Math.PI / 180 * 47.5),
+                -lat,
+              ],
+              unproject: ([x, y]) => [
+                x / Math.cos(Math.PI / 180 * 47.5),
+                -y,
+              ],
+            },
+            label: { show: false },
+            itemStyle: {
+              areaColor: "#ECECEA",
+              borderColor: "#FFFFFF",
+              borderWidth: 1,
+            },
+            emphasis: { disabled: true },
+          }],
+        });
+      });
+
+      window.addEventListener("resize", () => chart.resize());
+    </script>
+  </body>
+</html>

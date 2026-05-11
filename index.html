@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>Visualisierungs-Beispiele</title>
+    <style>
+      body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; color: #222; line-height: 1.5; }
+      h1 { margin-bottom: 0.25rem; }
+      .intro { color: #555; margin-bottom: 2.5rem; }
+      h2 { margin-top: 2rem; margin-bottom: 0.5rem; border-bottom: 1px solid #ddd; padding-bottom: 0.25rem; }
+      .lib { margin: 1.5rem 0 2rem; }
+      .lib-name { font-weight: 600; font-size: 1.05rem; }
+      .lib-desc { color: #444; margin: 0.35rem 0 0.75rem; }
+      ul.examples { list-style: none; padding: 0; margin: 0; }
+      ul.examples li { padding: 0.4rem 0; }
+      ul.examples a { font-family: monospace; font-size: 0.95rem; }
+      ul.examples .note { color: #666; }
+    </style>
+  </head>
+  <body>
+    <h1>Visualisierungs-Beispiele</h1>
+    <p class="intro">
+      Minimale Demos auf Basis offener Daten der Stadt Winterthur. Diagramme
+      und Punktkarten zeigen
+      <a href="https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/2902@stadt-winterthur">Besuchszahlen Kultureinrichtungen</a>,
+      die Choropleth-Karte
+      <a href="https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/2702@stadt-winterthur">Einwohner pro Quartier</a>.
+    </p>
+
+    <h2>Diagramme</h2>
+
+    <div class="lib">
+      <div class="lib-name">Chart.js</div>
+      <p class="lib-desc">
+        Etablierte Charting-Bibliothek auf Canvas-Basis. Klein (~70&nbsp;KB),
+        einfache API, ideal für schnelle Standarddiagramme. Grosse Community
+        und gute Dokumentation.
+      </p>
+      <ul class="examples">
+        <li><a href="chartjs.html">chartjs.html</a> <span class="note">— Säulendiagramm: Total Besuche pro Einrichtungstyp</span></li>
+      </ul>
+    </div>
+
+    <div class="lib">
+      <div class="lib-name">Apache ECharts</div>
+      <p class="lib-desc">
+        Umfassende Visualisierungsbibliothek von Apache. Sehr breiter
+        Funktionsumfang (Karten, 3D, Statistik) bei entsprechend grösserem
+        Bundle (~1&nbsp;MB). Stark bei interaktiven Dashboards.
+      </p>
+      <ul class="examples">
+        <li><a href="echarts.html">echarts.html</a> <span class="note">— minimales Säulendiagramm</span></li>
+        <li><a href="echarts-dropdown.html">echarts-dropdown.html</a> <span class="note">— Säulendiagramm mit Jahres-Dropdown</span></li>
+        <li><a href="echarts-population-pyramid.html">echarts-population-pyramid.html</a> <span class="note">— Bevölkerungspyramide, Geschlecht × Heimat</span></li>
+      </ul>
+    </div>
+
+    <div class="lib">
+      <div class="lib-name">sszvis</div>
+      <p class="lib-desc">
+        Visualisierungs-Toolkit der Statistik Stadt Zürich, basierend auf
+        D3.js. Liefert publizistische Diagrammtypen im SSZ-Designsystem mit
+        konsistenter Typografie und Farbgebung. Auf statische bis schwach
+        interaktive Visualisierungen ausgerichtet.
+      </p>
+      <ul class="examples">
+        <li><a href="sszvis.html">sszvis.html</a> <span class="note">— Säulendiagramm im sszvis-Design</span></li>
+      </ul>
+    </div>
+
+    <h2>Karten</h2>
+
+    <div class="lib">
+      <div class="lib-name">Leaflet</div>
+      <p class="lib-desc">
+        Leichtgewichtige Kartenbibliothek (~42&nbsp;KB) mit Rasterkacheln.
+        De-facto-Standard für einfache Webkarten, riesiges Plugin-Ökosystem.
+        Marker und Layer werden als DOM-Elemente gerendert.
+      </p>
+      <ul class="examples">
+        <li><a href="leaflet.html">leaflet.html</a> <span class="note">— Kultureinrichtungen als Kreismarker, mit Jahres-Filter</span></li>
+      </ul>
+    </div>
+
+    <div class="lib">
+      <div class="lib-name">MapLibre GL JS</div>
+      <p class="lib-desc">
+        WebGL-basierter Karten-Renderer (quelloffener Fork von Mapbox GL&nbsp;JS).
+        Vektorkacheln, flüssiges Zoomen, moderne Typografie. Grösserer Bundle
+        (~210&nbsp;KB), lohnt sich bei datenreichen oder zoomintensiven Karten.
+      </p>
+      <ul class="examples">
+        <li><a href="maplibre.html">maplibre.html</a> <span class="note">— gleiches Setup wie Leaflet, mit Vektorkarte von swisstopo</span></li>
+      </ul>
+    </div>
+
+    <div class="lib">
+      <div class="lib-name">Apache ECharts (Choropleth)</div>
+      <p class="lib-desc">
+        Gleiche Bibliothek wie oben, hier ohne Tile-Basemap. Die
+        <code>map</code>-Serie rendert GeoJSON-Polygone direkt; die
+        <code>visualMap</code>-Komponente liefert Klassen und Legende
+        automatisch. Geeignet, wenn nur die Datenfläche zählt und keine
+        geografische Orientierung über die Form hinaus nötig ist.
+      </p>
+      <ul class="examples">
+        <li><a href="echarts-choropleth.html">echarts-choropleth.html</a> <span class="note">— Einwohner pro Quartier, Rot-Skala der Stadt Winterthur</span></li>
+      </ul>
+    </div>
+  </body>
+</html>

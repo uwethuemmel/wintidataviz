@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>Chart.js minimal example</title>
+    <style>
+      body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+      #chart-wrapper { position: relative; height: 400px; }
+    </style>
+  </head>
+  <body>
+    <h1>Besuche pro Einrichtungstyp, Winterthur</h1>
+    <p>Quelle: <a href="https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/2902@stadt-winterthur">Stadt Winterthur</a></p>
+    <div id="chart-wrapper"><canvas id="chart"></canvas></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <script>
+      const CSV_URL =
+        "https://daten.statistik.zh.ch/ogd/daten/ressourcen/KTZH_00002902_00005968.csv";
+
+      d3.csv(CSV_URL, d3.autoType).then(rows => {
+        const latest = d3.max(rows, d => d.jahr);
+        const totals = d3.rollup(
+          rows.filter(d => d.jahr === latest),
+          v => d3.sum(v, d => d.besuche),
+          d => d.typ
+        );
+        const data = Array.from(totals, ([category, yValue]) => ({ category, yValue }))
+          .sort((a, b) => b.yValue - a.yValue);
+
+        new Chart(document.getElementById("chart"), {
+          type: "bar",
+          data: {
+            labels: data.map(d => d.category),
+            datasets: [{
+              label: `Besuche ${latest}`,
+              data: data.map(d => d.yValue),
+            }],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+          },
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>MapLibre CSV example</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/maplibre-gl@4/dist/maplibre-gl.css"
+    />
+    <style>
+      body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+      #controls { margin: 1rem 0; display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; }
+      #map { width: 100%; height: 600px; }
+      .legend { display: flex; gap: 0.75rem; font-size: 0.9rem; }
+      .legend-item { display: inline-flex; align-items: center; gap: 0.35rem; }
+      .legend-swatch { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+      .maplibregl-popup-content { font-family: sans-serif; font-size: 0.85rem; }
+    </style>
+  </head>
+  <body>
+    <h1>Besuche in Kultureinrichtungen, Winterthur</h1>
+    <p>
+      Quelle:
+      <a href="https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/2902@stadt-winterthur">Stadt Winterthur</a>
+      · Karte: <a href="https://www.swisstopo.admin.ch/">swisstopo</a>
+    </p>
+    <div id="controls">
+      <span><label for="year">Jahr: </label><select id="year" disabled></select></span>
+      <span class="legend" id="legend"></span>
+    </div>
+    <div id="map"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4/dist/maplibre-gl.js"></script>
+    <script>
+      const CSV_URL =
+        "https://daten.statistik.zh.ch/ogd/daten/ressourcen/KTZH_00002902_00005968.csv";
+      const STYLE_URL =
+        "https://vectortiles.geo.admin.ch/styles/ch.swisstopo.lightbasemap.vt/style.json";
+
+      const TYP_COLOR = {
+        Bibliothek: "#1f77b4",
+        Museum: "#d62728",
+        Theater: "#2ca02c",
+      };
+
+      document.getElementById("legend").innerHTML = Object.entries(TYP_COLOR)
+        .map(([t, c]) =>
+          `<span class="legend-item"><span class="legend-swatch" style="background:${c}"></span>${t}</span>`
+        )
+        .join("");
+
+      const map = new maplibregl.Map({
+        container: "map",
+        style: STYLE_URL,
+        center: [8.733, 47.500],
+        zoom: 12,
+      });
+      map.addControl(new maplibregl.NavigationControl(), "top-right");
+
+      const yearSelect = document.getElementById("year");
+
+      Promise.all([
+        d3.csv(CSV_URL, d3.autoType),
+        new Promise(resolve => map.on("load", resolve)),
+      ]).then(([rows]) => {
+        const years = Array.from(new Set(rows.map(d => d.jahr))).sort((a, b) => b - a);
+        yearSelect.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join("");
+        yearSelect.disabled = false;
+
+        map.addSource("institutions", {
+          type: "geojson",
+          data: { type: "FeatureCollection", features: [] },
+        });
+
+        map.addLayer({
+          id: "institution-points",
+          type: "circle",
+          source: "institutions",
+          paint: {
+            "circle-radius": [
+              "interpolate", ["linear"], ["get", "besuche"],
+              0, 3,
+              50000, 12,
+              400000, 30,
+            ],
+            "circle-color": [
+              "match", ["get", "typ"],
+              "Bibliothek", TYP_COLOR.Bibliothek,
+              "Museum", TYP_COLOR.Museum,
+              "Theater", TYP_COLOR.Theater,
+              "#999",
+            ],
+            "circle-opacity": 0.75,
+            "circle-stroke-color": "#fff",
+            "circle-stroke-width": 1,
+          },
+        });
+
+        const popup = new maplibregl.Popup({ closeButton: true, closeOnClick: false });
+        map.on("click", "institution-points", e => {
+          const p = e.features[0].properties;
+          const besuche = Number(p.besuche).toLocaleString("de-CH");
+          const kommentar = p.kommentar ? `<br><em>${p.kommentar}</em>` : "";
+          popup
+            .setLngLat(e.features[0].geometry.coordinates)
+            .setHTML(`<strong>${p.name}</strong><br>${p.typ} · ${besuche} Besuche${kommentar}`)
+            .addTo(map);
+        });
+        map.on("mouseenter", "institution-points", () => {
+          map.getCanvas().style.cursor = "pointer";
+        });
+        map.on("mouseleave", "institution-points", () => {
+          map.getCanvas().style.cursor = "";
+        });
+
+        const update = year => {
+          const features = rows
+            .filter(d => d.jahr === year && d.lon != null && d.lat != null)
+            .map(d => ({
+              type: "Feature",
+              geometry: { type: "Point", coordinates: [d.lon, d.lat] },
+              properties: {
+                name: d.name,
+                typ: d.typ,
+                besuche: d.besuche ?? 0,
+                kommentar: d.kommentar ?? "",
+              },
+            }));
+          map.getSource("institutions").setData({
+            type: "FeatureCollection",
+            features,
+          });
+          popup.remove();
+        };
+
+        update(years[0]);
+        yearSelect.addEventListener("change", e => update(+e.target.value));
+      });
+    </script>
+  </body>
+</html>

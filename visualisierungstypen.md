@@ -9,7 +9,7 @@ Spalte **Status**: ✓ = Beispiel im Repo vorhanden, — = noch offen.
 | Typ | Beschreibung | Status |
 |-----|--------------|--------|
 | Balkendiagramm | Horizontale Rechtecke; Vergleich kategorischer Werte. Varianten: einfach, gestapelt, gruppiert, divergierend. | — |
-| Säulendiagramm | Vertikale Rechtecke; Vergleich kategorischer Werte. Varianten wie Balkendiagramm. | ✓ `chartjs.html`, `echarts.html`, `echarts-dropdown.html`, `sszvis.html` |
+| Säulendiagramm | Vertikale Rechtecke; Vergleich kategorischer Werte. Varianten wie Balkendiagramm. | ✓ `echarts-dropdown.html`, `sszvis.html` |
 | Liniendiagramm | Punkte durch Linien verbunden; zeitliche Veränderungen oder Verteilungen. Eine oder mehrere Linien. | — |
 | Flächendiagramm | Wie Liniendiagramm, Fläche unter der Linie gefüllt. Varianten: einfach, gestapelt. | — |
 | Kuchendiagramm / Donutdiagramm | Kreissektoren proportional zum Anteil; max. 6 Sektoren. | — |

@@ -24,6 +24,13 @@
       const xAcc = d => d.category;
       const yAcc = d => d.yValue;
 
+      // Kategorische Palette §2 der Leitlinien, Farben 01–03 in fester Reihenfolge.
+      const TYP_COLOR = {
+        Bibliothek: "#CB2512", // 01 Rot
+        Museum:     "#A554C7", // 02 Violett
+        Theater:    "#1592C0", // 03 Blau
+      };
+
       let data = [];
 
       function render() {
@@ -41,8 +48,6 @@
         const heightScale = d3.scaleLinear().domain([0, yMax]).range([0, bounds.innerHeight]);
         const yPosScale = heightScale.copy().range([bounds.innerHeight, 0]);
 
-        const cScale = sszvis.scaleQual12();
-
         const chartLayer = sszvis.createSvgLayer(containerId, bounds).datum(data);
 
         const barGen = sszvis.bar()
@@ -50,7 +55,7 @@
           .y(d => yPosScale(yAcc(d)))
           .width(xScale.bandwidth())
           .height(d => heightScale(yAcc(d)))
-          .fill(cScale);
+          .fill(d => TYP_COLOR[xAcc(d)] ?? "#898989");
 
         const xAxis = sszvis.axisX.ordinal().scale(xScale).orient("bottom").slant("horizontal");
         const yAxis = sszvis.axisY().scale(yPosScale).orient("right");

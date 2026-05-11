@@ -38,10 +38,11 @@
       const TILE_URL =
         "https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-grau/default/current/3857/{z}/{x}/{y}.jpeg";
 
+      // Kategorische Palette §2 der Leitlinien, Farben 01–03 in fester Reihenfolge.
       const TYP_COLOR = {
-        Bibliothek: "#1f77b4",
-        Museum: "#d62728",
-        Theater: "#2ca02c",
+        Bibliothek: "#CB2512", // 01 Rot
+        Museum:     "#A554C7", // 02 Violett
+        Theater:    "#1592C0", // 03 Blau
       };
 
       document.getElementById("legend").innerHTML = Object.entries(TYP_COLOR)

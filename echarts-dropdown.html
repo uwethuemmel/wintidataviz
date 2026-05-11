@@ -24,6 +24,15 @@
       const CSV_URL =
         "https://daten.statistik.zh.ch/ogd/daten/ressourcen/KTZH_00002902_00005968.csv";
 
+      // Kategorische Palette §2 der Leitlinien, Farben 01–03 in fester Reihenfolge.
+      const TYP_COLOR = {
+        Bibliothek: "#CB2512", // 01 Rot
+        Museum:     "#A554C7", // 02 Violett
+        Theater:    "#1592C0", // 03 Blau
+      };
+      const ANTHRAZIT = "#44443F";
+      const GRID = "#DADAD6";
+
       const chart = echarts.init(document.getElementById("chart"));
       const yearSelect = document.getElementById("year");
       chart.showLoading();
@@ -33,11 +42,27 @@
         yearSelect.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join("");
         yearSelect.disabled = false;
 
+        const fmt = n =>
+          String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "'");
+
         chart.hideLoading();
         chart.setOption({
-          tooltip: { valueFormatter: v => v.toLocaleString("de-CH") },
-          xAxis: { type: "category" },
-          yAxis: { type: "value" },
+          tooltip: {
+            valueFormatter: v => fmt(v),
+            backgroundColor: "#fff",
+            borderColor: GRID,
+            textStyle: { color: ANTHRAZIT },
+          },
+          xAxis: {
+            type: "category",
+            axisLabel: { color: ANTHRAZIT },
+            axisLine: { lineStyle: { color: GRID } },
+          },
+          yAxis: {
+            type: "value",
+            axisLabel: { color: ANTHRAZIT, formatter: v => fmt(v) },
+            splitLine: { lineStyle: { color: GRID } },
+          },
           series: [{ type: "bar" }],
         });
 
@@ -51,9 +76,18 @@
             .sort((a, b) => b.yValue - a.yValue);
 
           chart.setOption({
-            title: { text: `Besuche pro Einrichtungstyp (${year})`, left: "center" },
+            title: {
+              text: `Besuche pro Einrichtungstyp (${year})`,
+              left: "center",
+              textStyle: { color: ANTHRAZIT },
+            },
             xAxis: { data: data.map(d => d.category) },
-            series: [{ data: data.map(d => d.yValue) }],
+            series: [{
+              data: data.map(d => ({
+                value: d.yValue,
+                itemStyle: { color: TYP_COLOR[d.category] ?? "#898989" },
+              })),
+            }],
           });
         };
 

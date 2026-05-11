@@ -18,6 +18,11 @@ Eine Übersicht aller Beispiele mit kurzer Bibliotheksbeschreibung gibt es in [`
 - [`maplibre.html`](./maplibre.html) — Gleiche Daten als Vektorkarte auf swisstopo-Basis
 - [`echarts-choropleth.html`](./echarts-choropleth.html) — Choropleth Einwohner pro Quartier, ohne Basemap (Apache ECharts)
 
+### Quarto (Datenstory-Pattern)
+
+- [`quarto-example.qmd`](./quarto-example.qmd) — Säulendiagramm der Bevölkerung Winterthur nach Altersklasse, mit **Live-Datenanbindung** und Jahres-Slider (Observable Plot, OJS-Blöcke in Quarto). Render mit `quarto render quarto-example.qmd`.
+- [`quarto-example-python.qmd`](./quarto-example-python.qmd) — Gleiches Säulendiagramm im **Python-Workflow**: pandas zieht die CSV beim Build, Plotly rendert den interaktiven Chart. Datenstand zur Build-Zeit eingefroren — typisches Muster für Datenstories und Jahresberichte. Voraussetzung: `pip install pandas plotly jupyter` (idealerweise in einem venv).
+
 ## Lokal starten
 
 Die Beispiele laden CSV und GeoJSON per `fetch` und funktionieren daher nicht über `file://`. Ein lokaler HTTP-Server genügt:

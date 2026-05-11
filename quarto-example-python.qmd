@@ -1,0 +1,83 @@
+---
+title: "Bevölkerung Winterthur"
+subtitle: "Minimum-Beispiel: Quarto + Python + Plotly (statischer Datenstand)"
+lang: de-CH
+jupyter: python3
+format:
+  html:
+    theme: cosmo
+    page-layout: article
+    toc: false
+    code-fold: true
+    code-summary: "Python-Code anzeigen"
+---
+
+Diese Seite rendert die Bevölkerungsstatistik der Stadt Winterthur **zum Build-Zeitpunkt**: `pandas` lädt die OGD-CSV beim `quarto render` einmalig, `plotly` erzeugt einen interaktiven HTML-Widget. Aktualisierungen der Quelle werden erst beim nächsten `quarto render` sichtbar — typisch für Datenstories und Jahresberichte mit einem fixen Stichtag.
+
+Vergleichsbeispiel mit Live-Daten via Observable JS: [`quarto-example.qmd`](./quarto-example.qmd).
+
+```{python}
+#| label: setup
+import pandas as pd
+
+URL = "https://daten.statistik.zh.ch/ogd/daten/ressourcen/KTZH_00002605_00005330.csv"
+
+df = pd.read_csv(URL)
+latest = int(df["jahr"].max())
+agg = (
+    df.query("jahr == @latest and gemeinde == 'Winterthur'")
+      .groupby("altersklasse", as_index=False)["anzahl"].sum()
+      .sort_values("altersklasse")
+)
+total = int(agg["anzahl"].sum())
+
+def fmt(n: int) -> str:
+    """Swiss number formatting: 122926 -> '122'926'."""
+    return f"{n:,}".replace(",", "'")
+```
+
+Datenstand: **31. Dezember `{python} latest`**. Total Bevölkerung Winterthur: **`{python} fmt(total)` Personen**.
+
+```{python}
+#| label: fig-bevoelkerung
+#| fig-cap: "Bevölkerung Winterthur nach Altersklasse, Stichtag 31. Dezember des letzten verfügbaren Jahres."
+import plotly.express as px
+
+fig = px.bar(
+    agg,
+    x="anzahl",
+    y="altersklasse",
+    orientation="h",
+    color_discrete_sequence=["#CB2512"],   # Kategorische Farbe 01 (Rot 500), Leitlinien §2
+    labels={"anzahl": "Personen", "altersklasse": ""},
+    height=480,
+)
+
+fig.update_layout(
+    yaxis={"autorange": "reversed"},        # Älteste oben (Pyramide-Konvention)
+    plot_bgcolor="white",
+    margin=dict(l=70, r=20, t=20, b=40),
+    separators="'.",                         # Schweizer Tausenderzeichen
+    font=dict(color="#44443F"),              # Anthrazit, Corporate-Farbe §1
+)
+fig.update_xaxes(showgrid=True, gridcolor="#DADAD6")
+fig.update_yaxes(showgrid=False)
+fig.update_traces(
+    hovertemplate="<b>Altersklasse %{y}</b><br>%{x:,.0f} Personen<extra></extra>"
+)
+fig
+```
+
+## Lokal rendern
+
+```bash
+# Einmalige Installation
+pip install pandas plotly jupyter
+
+# Render
+quarto render quarto-example-python.qmd
+```
+
+## Datenquelle
+
+- [Bevölkerung nach Alter, Geschlecht und Heimat — Stadt Winterthur](https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/2605@stadt-winterthur)

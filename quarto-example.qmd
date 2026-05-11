@@ -1,0 +1,90 @@
+---
+title: "Bevölkerung Winterthur"
+subtitle: "Minimum-Beispiel: Quarto + Observable Plot mit Live-Daten"
+lang: de-CH
+format:
+  html:
+    theme: cosmo
+    page-layout: article
+    toc: false
+---
+
+Diese Seite zieht die Bevölkerungsstatistik der Stadt Winterthur direkt aus dem
+[Datenkatalog der Statistik Kanton Zürich](https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/2605@stadt-winterthur).
+Die Daten werden beim Öffnen der Seite via `d3.csv` clientseitig geladen — eine
+Aktualisierung der OGD-Quelle ist beim nächsten Reload sofort sichtbar.
+
+Das Beispiel zeigt drei Quarto-Patterns, die für Datenstories typisch sind:
+
+1. **`ojs`-Block** fetcht die CSV-Quelle direkt und parst Zahlen mit `d3.autoType`.
+2. **`viewof`** definiert einen reaktiven Slider, dessen Wert (`jahr`) andere Blöcke automatisch neu rendert.
+3. **Observable Plot** zeichnet das Säulendiagramm; Hover-Tooltips kommen über `tip: true`.
+
+```{ojs}
+//| code-fold: true
+//| code-summary: "Datenladung anzeigen"
+data = d3.csv(
+  "https://daten.statistik.zh.ch/ogd/daten/ressourcen/KTZH_00002605_00005330.csv",
+  d3.autoType
+)
+```
+
+```{ojs}
+//| echo: false
+years = [...new Set(data.map(d => d.jahr))].sort((a, b) => a - b)
+```
+
+```{ojs}
+viewof jahr = Inputs.range(
+  [d3.min(years), d3.max(years)],
+  { value: d3.max(years), step: 1, label: "Jahr:", width: 320 }
+)
+```
+
+```{ojs}
+byAge = d3.rollups(
+  data.filter(d => d.jahr === jahr && d.gemeinde === "Winterthur"),
+  v => d3.sum(v, d => d.anzahl),
+  d => d.altersklasse
+).map(([altersklasse, personen]) => ({ altersklasse, personen }))
+```
+
+```{ojs}
+//| label: fig-bevoelkerung
+//| fig-cap: "Bevölkerung Winterthur nach Altersklasse, Stichtag 31. Dezember des gewählten Jahres."
+Plot.plot({
+  marginLeft: 70,
+  height: 480,
+  x: { label: "Personen", grid: true, tickFormat: d => d.toLocaleString("de-CH").replace(/\s/g, "'") },
+  y: { label: null, type: "band", reverse: true },
+  marks: [
+    Plot.barX(byAge, {
+      x: "personen",
+      y: "altersklasse",
+      fill: "#CB2512",  // Kategorische Farbe 01 (Rot 500), Leitlinien §2
+      tip: { format: { x: d => d.toLocaleString("de-CH").replace(/\s/g, "'") } }
+    }),
+    Plot.ruleX([0], { stroke: "#44443F" })
+  ]
+})
+```
+
+**Total Bevölkerung im Jahr ${jahr}: ${d3.sum(byAge, d => d.personen).toLocaleString("de-CH").replace(/\s/g, "'")}** Personen.
+
+## Lokal rendern
+
+```bash
+# Einmaliges Render in eine HTML-Datei
+quarto render quarto-example.qmd
+
+# Oder Live-Vorschau mit Auto-Reload
+quarto preview quarto-example.qmd
+```
+
+Voraussetzung: [Quarto-CLI](https://quarto.org/docs/get-started/) installiert (Standalone-Binary, keine R- oder Python-Toolchain nötig für reines OJS).
+
+## Datenquelle
+
+- [Bevölkerung nach Alter, Geschlecht und Heimat — Stadt Winterthur](https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/2605@stadt-winterthur)
+
+Siehe auch [`echarts-population-pyramid.html`](./echarts-population-pyramid.html) für den vollständigen Pyramide-Schnitt nach Geschlecht und Heimat.

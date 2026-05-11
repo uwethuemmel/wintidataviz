@@ -20,11 +20,13 @@
   <body>
     <h1>Visualisierungs-Beispiele</h1>
     <p class="intro">
-      Minimale Demos auf Basis offener Daten der Stadt Winterthur. Diagramme
-      und Punktkarten zeigen
+      Minimale Demos auf Basis offener Daten der Stadt Winterthur. Säulen-
+      diagramme und Punktkarten zeigen
       <a href="https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/2902@stadt-winterthur">Besuchszahlen Kultureinrichtungen</a>,
       die Choropleth-Karte
-      <a href="https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/2702@stadt-winterthur">Einwohner pro Quartier</a>.
+      <a href="https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/2702@stadt-winterthur">Einwohner pro Quartier</a>,
+      die Bevölkerungspyramide und die Quarto-Beispiele
+      <a href="https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/2605@stadt-winterthur">Bevölkerung nach Alter, Geschlecht und Heimat</a>.
     </p>
 
     <h2>Diagramme</h2>
@@ -92,6 +94,25 @@
       </p>
       <ul class="examples">
         <li><a href="echarts-choropleth.html">echarts-choropleth.html</a> <span class="note">— Einwohner pro Quartier, Rot-Skala der Stadt Winterthur</span></li>
+      </ul>
+    </div>
+
+    <h2>Datenstories (Quarto)</h2>
+
+    <div class="lib">
+      <div class="lib-name">Quarto</div>
+      <p class="lib-desc">
+        Publishing-System (Posit, MIT). Kombiniert Markdown mit Code-Blöcken
+        (Python, R, Julia, Observable JS) und rendert nach HTML, PDF oder
+        Reveal.js. Die Diagramm-Bibliothek bleibt austauschbar; geeignet für
+        Berichte und Datenstories, die Text und mehrere Visualisierungen
+        kombinieren. Die <code>.qmd</code>-Quelldateien werden mit
+        <code>quarto&nbsp;render</code> in die jeweilige
+        <code>.html</code>-Datei übersetzt.
+      </p>
+      <ul class="examples">
+        <li><a href="quarto-example.html">quarto-example.html</a> <span class="note">— Bevölkerung Winterthur, <strong>Live-Daten</strong> via Observable JS, Jahres-Slider</span></li>
+        <li><a href="quarto-example-python.html">quarto-example-python.html</a> <span class="note">— gleiche Daten mit Python + pandas + Plotly, Datenstand zur Build-Zeit eingefroren</span></li>
       </ul>
     </div>
   </body>
